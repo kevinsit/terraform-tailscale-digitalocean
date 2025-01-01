@@ -1,0 +1,7 @@
+digitalocean_token = ""
+digitalocean_location = "tor1"
+tailscale_auth_key = ""
+ssh_public_key_file = "~/.ssh/id_ed25519.pub"
+ssh_private_key_file = "~/.ssh/id_ed25519"
+droplet_size = "s-1vcpu-1gb"
+droplet_image = "ubuntu-24-10-x64"
