@@ -54,7 +54,10 @@ resource "digitalocean_droplet" "tailscale_exit_node" {
   EOF
 }
 
-resource "terraform_data" "data" {
+# This is a failsafe mechanism to remove the node from tailscale when it is destroyed.
+# If the tailscale API auth key is already marked as ephemeral, then this extra step
+# should not be necessary.
+resource "terraform_data" "tailscale_exit_node_logoff" {
   triggers_replace = {
     ipv4_address = digitalocean_droplet.tailscale_exit_node.ipv4_address
     ssh_private_key = file(var.ssh_private_key_file)
@@ -75,5 +78,59 @@ resource "terraform_data" "data" {
       private_key = self.triggers_replace.ssh_private_key
       host        = self.triggers_replace.ipv4_address
     }
+  }
+}
+
+resource "digitalocean_firewall" "tailscale_exit_node_firewall" {
+  name = "tailscale-exit-node-${random_id.random_suffix.hex}"
+
+  droplet_ids = [ digitalocean_droplet.tailscale_exit_node.id ]
+
+  inbound_rule {
+    protocol         = "udp"
+    port_range       = "41641"
+    source_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  inbound_rule {
+    protocol         = "udp"
+    port_range       = "22"
+    source_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "53"
+    destination_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "53"
+    destination_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "80"
+    destination_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "443"
+    destination_addresses = [ "0.0.0.0/0", "::/0" ]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "3478"
+    destination_addresses = [ "0.0.0.0/0", "::/0" ]
   }
 }
