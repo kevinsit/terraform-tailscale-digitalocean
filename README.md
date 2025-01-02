@@ -3,7 +3,7 @@
 I need VPN access, but IP addresses from most VPN providers are already tagged by IP location
 database as proxies. Using the code in this repository, I can bring up a Tailscale exit node in 
 DigitalOcean, so that I can route my traffic through DigitalOcean without getting tagged as
-a VPN user.
+a proxy user.
 
 ## Assumptions
 
